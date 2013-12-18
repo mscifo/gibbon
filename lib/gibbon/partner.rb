@@ -4,8 +4,7 @@ module Gibbon
     def initialize(app_key = nil, api_key = nil, default_params = {})
       @app_key = app_key
       @api_key = api_key
-      @default_params = default_params.delete(:apikey)
-
+      @default_params = default_params.delete(:apikey) || {}
       set_instance_defaults
     end
 
@@ -16,10 +15,9 @@ module Gibbon
     end
 
     def call(method, params = {})
-      api_url = export_api_url + method + "/"
+      api_url = export_api_url + '?method=' + method
       params = @default_params.merge(params).merge({app_key: @app_key, apikey: @api_key})
       response = self.class.post(api_url, body: MultiJson.dump(params), timeout: @timeout)
-
       lines = response.body.lines
       if @throws_exceptions
         first_line = MultiJson.load(lines.first) if lines.first
