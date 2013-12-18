@@ -16,7 +16,11 @@ module Gibbon
     def get_exporter
       Export.new(@api_key, @default_params)
     end
-    
+
+    def get_partner(app_key, api_key)
+      Parter.new(app_key, api_key, @default_params)
+    end
+
     def method_missing(method, *args)
       api = APICategory.new(method.to_s, @api_key, @timeout, @throws_exceptions, @api_endpoint, @default_params)
       api.api_endpoint = @api_endpoint if @api_endpoint

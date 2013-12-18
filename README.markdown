@@ -1,15 +1,15 @@
 # gibbon
 
-Gibbon is an API wrapper for MailChimp's [Primary and Export APIs](http://www.mailchimp.com/api).
+Gibbon is an API wrapper for MailChimp's [Primary, Export and Partner APIs](http://www.mailchimp.com/api).
 
 [![Build Status](https://secure.travis-ci.org/amro/gibbon.png)](http://travis-ci.org/amro/gibbon)
 
-##Important Notes About Version 0.5.0+
+##Important Notes About Version 0.6.0+
 ### (It's different!)
 
 Gibbon now targets MailChimp API 2.0, which is substantially different from API 1.3. Please use Gibbon 0.4.6 if you need to use API 1.3.
 
-* Supports MailChimp API 2.0 and Export API 1.0
+* Supports MailChimp API 2.0, Export API 1.0 and Partner API 1.3
 * Errors are raised by default since 0.4.x
 * Timeouts can be specified per request during initialization
 * Ruby 1.9.x+ for now. A future version may be Ruby 2.0 only to take advantage of lazy iteration when using the Export API.
@@ -165,6 +165,24 @@ of JSON objects rather than a single JSON array.
 For example, dumping list members via the "list" method works like this:
 
     gibbon_export.list({id => list_id})
+
+### Partner API usage
+
+Note: The MailChimp Partner API is available on an extremely limited basis and must be requested.
+
+In addition to the primary API and export API, you can make calls to the [Partner API](http://apidocs.mailchimp.com/partnerapi/1.3/) using an instance of GibbonPartner.  Given an existing instance of Gibbon, you can request a new GibbonPartner object:
+
+    g = Gibbon::API.new("your_api_key")
+    gibbon_partner = g.get_partner "your_app_key", "customer_api_key"
+
+or you can construct a new object directly:
+
+    gibbon_partner = Gibbon::Partner.new("your_app_key", "customer_api_key")
+
+For example, creating a list "createList" method works like this:
+
+    gibbon_partner.createList({:details => [:name => "New List", ...]})
+
 
 ##Thanks
 

@@ -174,6 +174,13 @@ describe Gibbon do
       expect(@exporter.api_key).to eq(@gibbon.api_key)
     end
 
+    it "produce a good partner" do
+      @app_key = "TESTAPPKEY-us1"
+      @api_key = "TESTAPIKEY-us1"
+      @partner = @gibbon.get_partner @app_key, @api_key
+      expect(@partner.app_key).to eq(@app_key) and expect(@partner.api_key).to eq(@api_key)
+    end
+
     it "not throw exception if configured to and the API replies with a JSON hash containing a key called 'error'" do
       @gibbon.throws_exceptions = false
       Gibbon::APICategory.stub(:post).and_return(Struct.new(:body).new(MultiJson.dump({'error' => 'bad things'})))
@@ -228,6 +235,49 @@ describe Gibbon do
       params = {:body => @body, :timeout => 30}
       reply = Struct.new(:body).new MultiJson.dump({'error' => 'bad things', 'code' => '123'})
       Gibbon::Export.stub(:post).and_return reply
+
+      expect(->{
+        @gibbon.say_hello(@body)
+      }).to raise_error(Gibbon::MailChimpError)
+    end
+
+  end
+
+  describe "partner API" do
+    before do
+      @app_key = "TESTAPPKEY-us1"
+      @api_key = "TESTAPIKEY-us1"
+      @gibbon = Gibbon::Partner.new(@app_key, @api_key)
+      @url = "http://us1.partner-api.mailchimp.com/1.3/"
+      @body = {:app_key => @app_key, :apikey => @api_key}
+      @returns = Struct.new(:body).new(MultiJson.dump(["array", "entries"]))
+    end
+
+    it "handle api key with dc" do
+      @app_key = "TESTAPPKEY-us1"
+      @api_key = "TESTAPIKEY-us1"
+      @gibbon = Gibbon::Partner.new(@app_key, @api_key)
+
+      @body = {:app_key => @app_key, :apikey => @api_key}
+      params = {:body => MultiJson.dump(@body), :timeout => 30}
+
+      url = @url.gsub('us1', 'us2') + "sayHello/"
+      Gibbon::Export.should_receive(:post).with(url, params).and_return(@returns)
+      @gibbon.say_hello(@body)
+    end
+
+    it "not throw exception if the Partner API replies with a JSON hash containing a key called 'error'" do
+      @gibbon.throws_exceptions = false
+      Gibbon::Partner.stub(:post).and_return(Struct.new(:body).new(MultiJson.dump({'error' => 'bad things'})))
+
+      @gibbon.say_hello(@body)
+    end
+
+    it "throw exception if configured to and the Partner API replies with a JSON hash containing a key called 'error'" do
+      @gibbon.throws_exceptions = true
+      params = {:body => @body, :timeout => 30}
+      reply = Struct.new(:body).new MultiJson.dump({'error' => 'bad things', 'code' => '123'})
+      Gibbon::Partner.stub(:post).and_return reply
 
       expect(->{
         @gibbon.say_hello(@body)
